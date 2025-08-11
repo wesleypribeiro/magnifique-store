@@ -7,6 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -16,6 +19,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const SignInForm = () => {
+  const router = useRouter();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -24,8 +28,28 @@ const SignInForm = () => {
     },
   });
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
+  async function onSubmit(values: FormValues) {
+    await authClient.signIn.email({
+      email: values.email,
+      password: values.password,
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/")
+        },
+        onError: (ctx) => {
+          if (ctx.error.code === "INVALID_EMAIL_OR_PASSWORD") {
+            toast.error("E-mail ou senha inválidos.");
+            form.setError("password", {
+              message: "E-mail ou senha inválidos."
+            })
+            return form.setError("email", {
+              message: "E-mail ou senha inválidos."
+            })
+          }
+          toast.error(ctx.error.message)
+        }
+      }
+    })
   }
 
   return (
@@ -60,7 +84,7 @@ const SignInForm = () => {
                 <FormItem>
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} type="password" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
