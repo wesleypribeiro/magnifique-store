@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/tabs"
 import SignInForm from "./components/sign-in-form"
 import SignUpForm from "./components/sign-up-form"
-import Header from "./components/common/header"
+import Header from "../../components/common/header"
 
 const Authentication = () => {
   return (
