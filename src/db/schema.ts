@@ -27,6 +27,10 @@ export const userTable = pgTable("user", {
 export const userRelations = relations(userTable, (params) => {
   return {
     shippingAddresses: params.many(shippingAddressTable),
+    cart: params.one(cartTable, {
+      fields: [userTable.id],
+      references: [cartTable.userId],
+    }),
   };
 });
 
@@ -159,5 +163,59 @@ export const shippingAddressRelations = relations(shippingAddressTable, (params)
       fields: [shippingAddressTable.userId],
       references: [userTable.id],
     }),
+    cart: params.one(cartTable, {
+      fields: [shippingAddressTable.userId],
+      references: [cartTable.userId],
+    }),
   };
 });
+
+export const cartTable = pgTable("cart", {
+  id: uuid().primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => userTable.id, { onDelete: "cascade" }),
+  shippingAddressId: uuid("shipping_address_id")
+    .references(() => shippingAddressTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const cartRelations = relations(cartTable, (params) => {
+  return {
+    user: params.one(userTable, {
+      fields: [cartTable.userId],
+      references: [userTable.id],
+    }),
+    shippingAddress: params.one(shippingAddressTable, {
+      fields: [cartTable.shippingAddressId],
+      references: [shippingAddressTable.id],
+    }),
+    items: params.many(cartItemTable),
+  };
+});
+
+export const cartItemTable = pgTable("cart_item", {
+  id: uuid().primaryKey().defaultRandom(),
+  cartId: uuid("cart_id")
+    .notNull()
+    .references(() => cartTable.id, { onDelete: "cascade" }),
+  productVariantId: uuid("product_variant_id")
+    .notNull()
+    .references(() => productVariantTable.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const cartItemRelations = relations(cartItemTable, (params) => {
+  return {
+    cart: params.one(cartTable, {
+      fields: [cartItemTable.cartId],
+      references: [cartTable.id],
+    }),
+    productVariant: params.one(productVariantTable, {
+      fields: [cartItemTable.productVariantId],
+      references: [productVariantTable.id],
+    }),
+  };
+});
+  
