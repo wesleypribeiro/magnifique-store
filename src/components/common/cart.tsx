@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../u
 import { useQuery } from "@tanstack/react-query";
 import { getCart } from "@/actions/get-cart";
 import Image from "next/image";
+import CartItem from "./cart-item";
 
 const Cart = () => {
   const { data: cart, isPending: cartIsLoading } = useQuery({
@@ -24,21 +25,17 @@ const Cart = () => {
           <SheetTitle>Carrinho</SheetTitle>
         </SheetHeader>
         {cartIsLoading && <div>Carregando...</div>}
-        <div>
+        <div className="space-y-4 px-5">
           {cart?.items.map((item) => (
-            <div key={item.id}>
-              <Image
-                src={item.productVariant.imageUrl.replace(/[{}"]/g, '')}
-                alt={item.productVariant.name}
-                width={100}
-                height={100}
-              />
-              <div>
-                <h3>{item.productVariant.name}</h3>
-                <p>{item.productVariant.priceInCents}</p>
-                <p>{item.quantity}</p>
-              </div>
-            </div>
+            <CartItem
+              key={item.id}
+              id={item.id}
+              productName={item.productVariant.product.name}
+              productVariantName={item.productVariant.name}
+              productVariantImageUrl={item.productVariant.imageUrl}
+              productVariantPriceInCents={item.productVariant.priceInCents}
+              quantity={item.quantity}
+            />
           ))}
         </div>
       </SheetContent>

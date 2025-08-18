@@ -20,7 +20,11 @@ export const getCart = async () => {
     with: {
       items: {
         with: {
-          productVariant: true,
+          productVariant: {
+            with: {
+              product: true,
+            }
+          },
         }
       }
     }
