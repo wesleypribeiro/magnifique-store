@@ -6,10 +6,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { removeProductFromCart } from "@/actions/remove-cart-product";
 import { toast } from "sonner";
 import { decreaseCartProductQuantity } from "@/actions/decrease-cart-product-quantity";
+import { addProductToCart } from "@/actions/add-cart-product";
 
 interface CartItemProps {
   id: string;
   productName: string;
+  productVariantId: string;
   productVariantName: string;
   productVariantImageUrl: string;
   productVariantPriceInCents: number;
@@ -19,6 +21,7 @@ interface CartItemProps {
 const CartItem = ({
   id,
   productName,
+  productVariantId,
   productVariantName,
   productVariantImageUrl,
   productVariantPriceInCents,
@@ -37,6 +40,15 @@ const CartItem = ({
   const decreaseProductQuantityMutation = useMutation({
     mutationKey: ['decrease-product-quantity'],
     mutationFn: () => decreaseCartProductQuantity({ cartItemId: id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['cart'],
+      })
+    },
+  })
+  const increaseProductQuantityMutation = useMutation({
+    mutationKey: ['increase-product-quantity'],
+    mutationFn: () => addProductToCart({ productVariantId, quantity: 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['cart'],
@@ -63,6 +75,16 @@ const CartItem = ({
       }
     });
   }
+  const handleIncreaseQuantityClick = () => {
+    increaseProductQuantityMutation.mutate(undefined, {
+      onSuccess: () => {
+        toast.success(`Quantidade do produto aumentada`)
+      },
+      onError: () => {
+        toast.error(`Erro ao aumentar quantidade do produto`)
+      }
+    });
+  }
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -79,7 +101,7 @@ const CartItem = ({
           <div className="flex items-center border justify-between rounded-lg w-[100px] p-1">
             <Button className="h-4 w-4" variant="ghost" onClick={handleDecreaseQuantityClick}><MinusIcon size={12} /></Button>
             <p className="text-xs font-medium">{quantity}</p>
-            <Button className="h-4 w-4" variant="ghost" onClick={() => {}}><PlusIcon size={12} /></Button>
+            <Button className="h-4 w-4" variant="ghost" onClick={handleIncreaseQuantityClick}><PlusIcon size={12} /></Button>
           </div>
         </div>
       </div>
