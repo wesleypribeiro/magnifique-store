@@ -8,6 +8,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 import { formatCentsToBRL } from "@/utils/money";
 import { useCart } from "@/hooks/queries/use-cart";
+import Link from "next/link";
 
 const Cart = () => {
   const { data: cart } = useCart();
@@ -65,7 +66,11 @@ const Cart = () => {
                 <p>{formatCentsToBRL(cart?.totalPriceInCents ?? 0)}</p>
               </div>
 
-              <Button className="rounded-full mt-5">Finalizar compra</Button>
+              <Button className="rounded-full mt-5" asChild>
+                <Link href="/cart/identification">
+                  Finalizar compra
+                </Link>
+              </Button>
             </div>
           )}
         </div>
