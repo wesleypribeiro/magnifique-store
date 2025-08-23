@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAddresses } from "@/hooks/queries/use-addresses";
 import { useCreateAddressMutation } from "@/hooks/mutations/use-create-address";
+import { shippingAddressTable } from "@/db/schema";
 
 const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -63,13 +64,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const Addresses = () => {
-  const router = useRouter();
+interface AddressesProps {
+  shippingAddresses: (typeof shippingAddressTable.$inferSelect)[];
+}
+
+const Addresses = ({ shippingAddresses }: AddressesProps) => {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const { data: addressesData, isLoading: isLoadingAddresses } = useAddresses();
+  const { data: addressesData, isLoading: isLoadingAddresses } = useAddresses({initialData: shippingAddresses});
   const createAddressMutation = useCreateAddressMutation();
   
-  const addresses = addressesData?.data || [];
+  const addresses = addressesData || [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
