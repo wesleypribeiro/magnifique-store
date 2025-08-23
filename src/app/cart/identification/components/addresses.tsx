@@ -9,12 +9,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import React, { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-type InputProps = React.ComponentProps<typeof Input>;
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { PatternFormat } from "react-number-format";
+import { createAddress } from "@/actions/create-address";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-// Custom input component with proper styling
 const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
     <input
@@ -27,23 +28,42 @@ const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes
 
 StyledInput.displayName = "StyledInput";
 
+// Helper to remove non-digit characters
+const removeNonDigits = (value: string) => value.replace(/\D/g, '');
+
 const formSchema = z.object({
   email: z.email("E-mail inválido").min(1, "E-mail é obrigatório"),
   fullName: z.string().min(1, "Nome completo é obrigatório"),
-  cpf: z.string().min(14, "CPF inválido").max(14, "CPF inválido"),
-  phone: z.string().min(15, "Celular inválido").max(15, "Celular inválido"),
-  zipCode: z.string().min(9, "CEP inválido").max(9, "CEP inválido"),
+  cpf: z.string()
+    .min(1, "CPF é obrigatório")
+    .refine(val => removeNonDigits(val).length === 11, {
+      message: "CPF deve ter 11 dígitos"
+    }),
+  phone: z.string()
+    .min(1, "Celular é obrigatório")
+    .refine(val => removeNonDigits(val).length === 11, {
+      message: "Celular deve ter 11 dígitos (DDD + número)"
+    }),
+  zipCode: z.string()
+    .min(1, "CEP é obrigatório")
+    .refine(val => removeNonDigits(val).length === 8, {
+      message: "CEP deve ter 8 dígitos"
+    }),
   address: z.string().min(1, "Endereço é obrigatório"),
   number: z.string().min(1, "Número é obrigatório"),
   complement: z.string().optional(),
   neighborhood: z.string().min(1, "Bairro é obrigatório"),
   city: z.string().min(1, "Cidade é obrigatória"),
-  state: z.string().min(2, "Estado é obrigatório").max(2, "UF deve ter 2 caracteres"),
+  state: z.string()
+    .min(2, "Estado é obrigatório")
+    .max(2, "UF deve ter 2 caracteres")
+    .transform(val => val.toUpperCase()),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const Addresses = () => {
+  const router = useRouter();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -64,13 +84,27 @@ const Addresses = () => {
     },
   });
 
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (formData: FormValues) => {
     try {
       setIsLoading(true);
-      // TODO: Implement form submission logic
-      console.log(values);
+      
+      // Format the data before sending to the server
+      const formattedData = {
+        ...formData,
+        cpf: removeNonDigits(formData.cpf),
+        phone: removeNonDigits(formData.phone),
+        zipCode: removeNonDigits(formData.zipCode),
+        state: formData.state.toUpperCase(),
+      };
+      
+      const result = await createAddress(formattedData);
+      
+      toast.success("Endereço cadastrado com sucesso!");
+      form.reset();
+      router.refresh();
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error('Error submitting form:', error);
+      toast.error("Ocorreu um erro ao salvar o endereço. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +176,9 @@ const Addresses = () => {
                                 mask={'_'}
                                 placeholder="000.000.000-00"
                                 value={field.value}
-                                onValueChange={({ value }) => field.onChange(value)}
+                                onValueChange={(values) => {
+                                  field.onChange(values.formattedValue);
+                                }}
                                 customInput={StyledInput}
                               />
                             </FormControl>
@@ -163,7 +199,9 @@ const Addresses = () => {
                                 mask={'_'}
                                 placeholder="(00) 00000-0000"
                                 value={field.value}
-                                onValueChange={({ value }) => field.onChange(value)}
+                                onValueChange={(values) => {
+                                  field.onChange(values.formattedValue);
+                                }}
                                 customInput={StyledInput}
                               />
                             </FormControl>
@@ -184,7 +222,9 @@ const Addresses = () => {
                                 mask={'_'}
                                 placeholder="00000-000"
                                 value={field.value}
-                                onValueChange={({ value }) => field.onChange(value)}
+                                onValueChange={(values) => {
+                                  field.onChange(values.formattedValue);
+                                }}
                                 customInput={StyledInput}
                               />
                             </FormControl>
@@ -286,10 +326,14 @@ const Addresses = () => {
 
                     <div className="flex justify-end pt-4">
                       <Button type="submit" disabled={isLoading}>
-                        {isLoading && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          'Salvar Endereço'
                         )}
-                        Salvar endereço
                       </Button>
                     </div>
                   </form>
