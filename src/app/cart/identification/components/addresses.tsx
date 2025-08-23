@@ -12,9 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { PatternFormat } from "react-number-format";
-import { createAddress } from "@/actions/create-address";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAddresses } from "@/hooks/queries/use-addresses";
+import { useCreateAddressMutation } from "@/hooks/mutations/use-create-address";
 
 const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -65,7 +66,10 @@ type FormValues = z.infer<typeof formSchema>;
 const Addresses = () => {
   const router = useRouter();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data: addressesData, isLoading: isLoadingAddresses } = useAddresses();
+  const createAddressMutation = useCreateAddressMutation();
+  
+  const addresses = addressesData?.data || [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,8 +90,6 @@ const Addresses = () => {
 
   const onSubmit = async (formData: FormValues) => {
     try {
-      setIsLoading(true);
-      
       // Format the data before sending to the server
       const formattedData = {
         ...formData,
@@ -97,16 +99,14 @@ const Addresses = () => {
         state: formData.state.toUpperCase(),
       };
       
-      const result = await createAddress(formattedData);
+      await createAddressMutation.mutateAsync(formattedData);
       
       toast.success("Endereço cadastrado com sucesso!");
       form.reset();
-      router.refresh();
+      setSelectedAddress(null);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error("Ocorreu um erro ao salvar o endereço. Tente novamente.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -121,14 +121,54 @@ const Addresses = () => {
           onValueChange={setSelectedAddress}
           className="space-y-4"
         >
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="add_new" id="add_new" />
-                <Label htmlFor="add_new">Adicionar novo endereço</Label>
-              </div>
-            </CardContent>
-          </Card>
+          {isLoadingAddresses ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <span className="ml-2">Carregando endereços...</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {addresses.map((address) => (
+                <Card key={address.id}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                      <div className="flex-1">
+                        <Label htmlFor={address.id} className="cursor-pointer">
+                          <div className="space-y-1">
+                            <div className="font-medium">{address.recipientName}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {address.street}, {address.number}
+                              {address.complement && `, ${address.complement}`}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {address.neighborhood}, {address.city} - {address.state}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              CEP: {address.zipCode.replace(/(\d{5})(\d{3})/, '$1-$2')}
+                            </div>
+                          </div>
+                        </Label>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="add_new" id="add_new" />
+                    <Label htmlFor="add_new">Adicionar novo endereço</Label>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
 
           {selectedAddress === "add_new" && (
             <Card>
@@ -325,8 +365,8 @@ const Addresses = () => {
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" disabled={isLoading}>
-                        {isLoading ? (
+                      <Button type="submit" disabled={createAddressMutation.isPending}>
+                        {createAddressMutation.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Salvando...
