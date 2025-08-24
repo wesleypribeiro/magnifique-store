@@ -6,17 +6,19 @@ import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { PatternFormat } from "react-number-format";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAddresses } from "@/hooks/queries/use-addresses";
 import { useCreateAddressMutation } from "@/hooks/mutations/use-create-address";
+import { useUpdateCartShippingAddressMutation } from "@/hooks/mutations/use-update-cart-shipping-address";
 import { shippingAddressTable } from "@/db/schema";
+import { useCart } from "@/hooks/queries/use-cart";
+import { getCart } from "@/actions/get-cart";
 
 const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -66,12 +68,14 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface AddressesProps {
   shippingAddresses: (typeof shippingAddressTable.$inferSelect)[];
+  defaultShippingAddressId: string | null;
 }
 
-const Addresses = ({ shippingAddresses }: AddressesProps) => {
-  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+const Addresses = ({ shippingAddresses, defaultShippingAddressId }: AddressesProps) => {
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(defaultShippingAddressId || null);
   const { data: addressesData, isLoading: isLoadingAddresses } = useAddresses({initialData: shippingAddresses});
   const createAddressMutation = useCreateAddressMutation();
+  const updateCartShippingAddressMutation = useUpdateCartShippingAddressMutation();
   
   const addresses = addressesData || [];
 
@@ -103,14 +107,37 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
         state: formData.state.toUpperCase(),
       };
       
-      await createAddressMutation.mutateAsync(formattedData);
+      const result = await createAddressMutation.mutateAsync(formattedData);
       
-      toast.success("Endereço cadastrado com sucesso!");
+      // Update cart with the new shipping address
+      await updateCartShippingAddressMutation.mutateAsync({
+        shippingAddressId: result.data.id
+      });
+      
+      toast.success("Endereço cadastrado e vinculado ao carrinho com sucesso!");
       form.reset();
       setSelectedAddress(null);
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error("Ocorreu um erro ao salvar o endereço. Tente novamente.");
+    }
+  };
+
+  const handleGoToPayment = async () => {
+    if (!selectedAddress || selectedAddress === "add_new") {
+      toast.error("Selecione um endereço para continuar");
+      return;
+    }
+
+    try {
+      await updateCartShippingAddressMutation.mutateAsync({
+        shippingAddressId: selectedAddress
+      });
+      
+      toast.success("Endereço vinculado ao carrinho com sucesso!");
+    } catch (error) {
+      console.error('Error updating cart shipping address:', error);
+      toast.error("Ocorreu um erro ao vincular o endereço. Tente novamente.");
     }
   };
 
@@ -171,6 +198,24 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
                   </div>
                 </CardContent>
               </Card>
+              {selectedAddress && selectedAddress !== "add_new" && (
+                <div className="flex pt-4">
+                  <Button 
+                    onClick={handleGoToPayment}
+                    disabled={updateCartShippingAddressMutation.isPending}
+                    className="w-full"
+                  >
+                    {updateCartShippingAddressMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processando...
+                      </>
+                    ) : (
+                      'Ir para pagamento'
+                    )}
+                  </Button>
+                </div>
+              )}
             </>
           )}
 
@@ -369,8 +414,11 @@ const Addresses = ({ shippingAddresses }: AddressesProps) => {
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" disabled={createAddressMutation.isPending}>
-                        {createAddressMutation.isPending ? (
+                      <Button 
+                        type="submit" 
+                        disabled={createAddressMutation.isPending || updateCartShippingAddressMutation.isPending}
+                      >
+                        {(createAddressMutation.isPending || updateCartShippingAddressMutation.isPending) ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Salvando...
