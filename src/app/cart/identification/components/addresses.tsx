@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,8 @@ import { useAddresses } from "@/hooks/queries/use-addresses";
 import { useCreateAddressMutation } from "@/hooks/mutations/use-create-address";
 import { useUpdateCartShippingAddressMutation } from "@/hooks/mutations/use-update-cart-shipping-address";
 import { shippingAddressTable } from "@/db/schema";
-import { useCart } from "@/hooks/queries/use-cart";
-import { getCart } from "@/actions/get-cart";
+import { useRouter } from "next/navigation";
+import Address from "../../helpers/address";
 
 const StyledInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -72,6 +72,7 @@ interface AddressesProps {
 }
 
 const Addresses = ({ shippingAddresses, defaultShippingAddressId }: AddressesProps) => {
+  const router = useRouter();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(defaultShippingAddressId || null);
   const { data: addressesData, isLoading: isLoadingAddresses } = useAddresses({initialData: shippingAddresses});
   const createAddressMutation = useCreateAddressMutation();
@@ -135,6 +136,7 @@ const Addresses = ({ shippingAddresses, defaultShippingAddressId }: AddressesPro
       });
       
       toast.success("Endereço vinculado ao carrinho com sucesso!");
+      router.push("/cart/confirmation");
     } catch (error) {
       console.error('Error updating cart shipping address:', error);
       toast.error("Ocorreu um erro ao vincular o endereço. Tente novamente.");
@@ -170,19 +172,7 @@ const Addresses = ({ shippingAddresses, defaultShippingAddressId }: AddressesPro
                       <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
                       <div className="flex-1">
                         <Label htmlFor={address.id} className="cursor-pointer">
-                          <div className="space-y-1">
-                            <div className="font-medium">{address.recipientName}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {address.street}, {address.number}
-                              {address.complement && `, ${address.complement}`}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {address.neighborhood}, {address.city} - {address.state}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              CEP: {address.zipCode.replace(/(\d{5})(\d{3})/, '$1-$2')}
-                            </div>
-                          </div>
+                          <Address address={address} />
                         </Label>
                       </div>
                     </div>
