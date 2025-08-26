@@ -6,16 +6,21 @@ import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const FinishOrderButton = () => {
-  const [successDialogIsOpen, setSuccessDialogIsOpen] = useState(true);
+  const [successDialogIsOpen, setSuccessDialogIsOpen] = useState(false);
   const finishOrderMutation = useFinishOrder();
+  const handleFinishOrder = () => {
+    finishOrderMutation.mutate();
+    setSuccessDialogIsOpen(true);
+  }
   return (
     <>
     <Button
       className="w-full rounded-full"
       size="lg"
-      onClick={() => finishOrderMutation.mutate()}
+      onClick={handleFinishOrder}
       disabled={finishOrderMutation.isPending}
     >
       {finishOrderMutation.isPending && (
@@ -38,7 +43,15 @@ const FinishOrderButton = () => {
         </DialogDescription>
         <DialogFooter>
           <Button className="rounded-full" size="lg">Ver meus pedidos</Button>
-          <Button className="rounded-full" size="lg" variant="outline">Voltar para a loja</Button>
+          <Button
+            className="rounded-full"
+            size="lg"
+            variant="outline"
+            onClick={() => setSuccessDialogIsOpen(false)}
+            asChild
+          >
+            <Link href="/">Voltar para a loja</Link>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
