@@ -1,10 +1,11 @@
 "use client";
 
-import Header from "@/components/common/header";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Image from "next/image";
 import Link from "next/link";
+
+import Header from "@/components/common/header";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter,DialogTitle } from "@/components/ui/dialog";
 
 const SuccessPage = () => {
   return (

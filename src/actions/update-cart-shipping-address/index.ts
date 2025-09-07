@@ -1,11 +1,13 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { UpdateCartShippingAddressSchema, updateCartShippingAddressSchema } from "./schema";
+
 import { db } from "@/db";
 import { cartTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+
+import { UpdateCartShippingAddressSchema, updateCartShippingAddressSchema } from "./schema";
 
 export const updateCartShippingAddress = async (data: UpdateCartShippingAddressSchema) => {
   updateCartShippingAddressSchema.parse(data);

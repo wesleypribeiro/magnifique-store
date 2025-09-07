@@ -1,10 +1,11 @@
 'use server';
 
+import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
+
 import { db } from '@/db';
 import { shippingAddressTable } from '@/db/schema';
 import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
 
 export const getUserAddresses = async () => {
   const session = await auth.api.getSession({

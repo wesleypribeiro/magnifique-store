@@ -1,9 +1,10 @@
+import { eq } from "drizzle-orm";
+import { notFound } from "next/navigation";
+
 import Header from "@/components/common/header";
 import ProductItem from "@/components/common/product-item";
 import { db } from "@/db";
 import { categoryTable, productTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -29,7 +30,7 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
       <div className="px-5 space-y-6">
         <h2 className="font-semibold text-xl">{category.name}</h2>
         <div className="grid grid-cols-2 gap-4">
-          {products.map(product => <ProductItem product={product} textContainerClassName="max-w-full" />)}
+          {products.map(product => <ProductItem key={product.id} product={product} textContainerClassName="max-w-full" />)}
         </div>
       </div>
     </>

@@ -1,4 +1,3 @@
-import { Label } from "@/components/ui/label";
 import { shippingAddressTable } from "@/db/schema";
 
 const Address = ({ address }: { address: typeof shippingAddressTable.$inferSelect }) => {

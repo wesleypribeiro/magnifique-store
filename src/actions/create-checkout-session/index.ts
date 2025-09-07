@@ -1,10 +1,12 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { createCheckoutSessionSchema, CreateCheckoutSessionSchema } from "./schema";
 import { headers } from "next/headers";
-import { db } from "@/db";
 import Stripe from "stripe";
+
+import { db } from "@/db";
+import { auth } from "@/lib/auth";
+
+import { CreateCheckoutSessionSchema,createCheckoutSessionSchema } from "./schema";
 
 export const createCheckoutSession = async (data: CreateCheckoutSessionSchema) => {
   if (!process.env.NEXT_STRIPE_SECRET_KEY) {

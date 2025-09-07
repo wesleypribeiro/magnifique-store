@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUseAddressesQueryKey } from "../queries/use-addresses";
+
 import { createAddress } from "@/actions/create-address";
 import { CreateAddressInput } from "@/actions/create-address/schema";
+
+import { getUseAddressesQueryKey } from "../queries/use-addresses";
 
 export const getCreateAddressMutationKey = () => ['create-address'] as const;
 

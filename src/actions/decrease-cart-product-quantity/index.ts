@@ -1,10 +1,11 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+
 import { db } from "@/db";
 import { cartItemTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
 import { DecreaseCartProductQuantitySchema, decreaseCartProductQuantitySchema } from "./schema";
 

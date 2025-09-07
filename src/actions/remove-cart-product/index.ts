@@ -1,13 +1,14 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import z from "zod";
+
 import { db } from "@/db";
 import { cartItemTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
 import { removeProductFromCartSchema } from "./schema";
-import z from "zod";
 
 export const removeProductFromCart = async (data: z.infer<typeof removeProductFromCartSchema>) => {
     removeProductFromCartSchema.parse(data);

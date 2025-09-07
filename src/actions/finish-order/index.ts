@@ -1,11 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+
 import { db } from "@/db";
 import { cartItemTable, cartTable, orderItemTable, orderTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
 
 export const finishOrder = async () => {
   const session = await auth.api.getSession({

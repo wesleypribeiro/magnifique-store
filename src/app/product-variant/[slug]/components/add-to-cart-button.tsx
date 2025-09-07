@@ -1,9 +1,10 @@
 "use client";
 
-import { addProductToCart } from "@/actions/add-cart-product";
-import { Button } from "@/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2Icon } from "lucide-react";
+
+import { addProductToCart } from "@/actions/add-cart-product";
+import { Button } from "@/components/ui/button";
 
 interface AddToCartButtonProps {
   productVariantId: string;

@@ -1,15 +1,16 @@
-import Header from "@/components/common/header";
-import ProductList from "@/components/common/product-list";
-import { Button } from "@/components/ui/button";
-import { db } from "@/db";
-import { productTable, productVariantTable } from "@/db/schema";
-import { formatCentsToBRL } from "@/utils/money";
 import { eq } from "drizzle-orm";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+
 import Footer from "@/components/common/footer";
-import VariantSelector from "./components/variant-selector";
+import Header from "@/components/common/header";
+import ProductList from "@/components/common/product-list";
+import { db } from "@/db";
+import { productTable, productVariantTable } from "@/db/schema";
+import { formatCentsToBRL } from "@/utils/money";
+
 import ProductActions from "./components/product-actions";
+import VariantSelector from "./components/variant-selector";
 
 interface ProductVariantPageProps {
     params: Promise<{slug: string}>;

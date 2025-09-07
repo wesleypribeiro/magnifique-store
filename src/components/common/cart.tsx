@@ -1,14 +1,16 @@
 "use client";
 
 import { ShoppingBasketIcon } from "lucide-react";
+import Link from "next/link";
+
+import { useCart } from "@/hooks/queries/use-cart";
+import { formatCentsToBRL } from "@/utils/money";
+
 import { Button } from "../ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
-import CartItem from "./cart-item";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { formatCentsToBRL } from "@/utils/money";
-import { useCart } from "@/hooks/queries/use-cart";
-import Link from "next/link";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import CartItem from "./cart-item";
 
 const Cart = () => {
   const { data: cart } = useCart();
