@@ -1,6 +1,6 @@
 "use client";
 
-import { LogInIcon, LogOutIcon, MenuIcon } from "lucide-react";
+import { LogInIcon, LogOutIcon, MenuIcon, Search, ShoppingBag, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,13 +15,17 @@ const Header = () => {
   const { data: session } = authClient.useSession();
   return (
     <header className="flex items-center justify-between p-5">
+      <div className="hidden md:flex items-center gap-3">
+        <User />
+        <h1 className="font-semibold">Olá, {session?.user?.name || 'Anonimo'}</h1>
+      </div>
       <Image
         src="/logo.svg"
         alt="BEWEAR"
         width={100}
         height={26.14}
       />
-      <div className="flex items-center gap-4">
+      <div className="md:hidden sm:flex items-center gap-4">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon">
@@ -79,6 +83,10 @@ const Header = () => {
           </SheetContent>
         </Sheet>
         <Cart />
+      </div>
+      <div className="hidden md:flex items-center gap-4">
+        <Search />
+        <ShoppingBag />
       </div>
     </header>
   );
